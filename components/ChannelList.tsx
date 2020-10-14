@@ -1,14 +1,15 @@
 import React, { useEffect, useState } from "react";
 import { FlatList } from "react-native";
+import { useNavigation } from "@react-navigation/native";
 import { FAB, List } from "react-native-paper";
+import { OpenChannel } from "sendbird";
 import styles from "./ChannelList.styles";
 import { sb } from "../lib/sendbird";
 import { Text, View } from "../components/Themed";
-import { OpenChannel } from "sendbird";
-import { Item } from "react-native-paper/lib/typescript/src/components/List/List";
 
 const ChannelList = () => {
   const [channels, setChannels] = useState<OpenChannel[]>([]);
+  const navigation = useNavigation();
 
   useEffect(() => {
     sb.connect("sean", () => {
@@ -25,8 +26,8 @@ const ChannelList = () => {
     });
   };
 
-  const handlePressChannel = () => {
-    console.log("handlePressChannel");
+  const handlePressChannel = (channel: OpenChannel) => {
+    navigation.navigate("ChannelScreen", { url: channel.url });
   };
 
   return (
@@ -38,7 +39,7 @@ const ChannelList = () => {
           <List.Item
             title={item.name}
             description={item.url}
-            onPress={handlePressChannel}
+            onPress={() => handlePressChannel(item)}
           />
         )}
       />

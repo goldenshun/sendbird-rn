@@ -8,7 +8,13 @@ import useColorScheme from "../hooks/useColorScheme";
 import TabOneScreen from "../screens/TabOneScreen";
 import TabTwoScreen from "../screens/TabTwoScreen";
 import ChannelTabScreen from "../screens/ChannelTabScreen";
-import { BottomTabParamList, TabOneParamList, TabTwoParamList } from "../types";
+import ChannelScreen from "../screens/ChannelScreen";
+import {
+  BottomTabParamList,
+  TabOneParamList,
+  TabTwoParamList,
+  ChannelNavigatorParamList,
+} from "../types";
 
 const BottomTab = createBottomTabNavigator<BottomTabParamList>();
 
@@ -87,14 +93,19 @@ function TabTwoNavigator() {
   );
 }
 
-const ChannelTabStack = createStackNavigator();
+const ChannelTabStack = createStackNavigator<ChannelNavigatorParamList>();
 function ChannelTabNavigator() {
   return (
     <ChannelTabStack.Navigator>
       <ChannelTabStack.Screen
-        name="ChannelTabScreen"
+        name="ChannelListScreen"
         component={ChannelTabScreen}
         options={{ headerTitle: "Channels" }}
+      />
+      <ChannelTabStack.Screen
+        name="ChannelScreen"
+        component={ChannelScreen}
+        options={{ headerTitle: "Single Channel" }}
       />
     </ChannelTabStack.Navigator>
   );

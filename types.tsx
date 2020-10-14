@@ -16,3 +16,12 @@ export type TabOneParamList = {
 export type TabTwoParamList = {
   TabTwoScreen: undefined;
 };
+
+export type ChannelNavigatorParamList = {
+  ChannelListScreen: undefined;
+  ChannelScreen: ChannelScreenParamList;
+};
+
+export type ChannelScreenParamList = {
+  url: string;
+};
