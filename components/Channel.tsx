@@ -1,21 +1,26 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { RouteProp, useRoute } from "@react-navigation/native";
 import { Button, List, TextInput } from "react-native-paper";
 import { useForm, Controller } from "react-hook-form";
 import { sb } from "../lib/sendbird";
 import { Text, View } from "../components/Themed";
 import { ChannelNavigatorParamList } from "../types";
-import { OpenChannel, UserMessage } from "sendbird";
+import { OpenChannel, PreviousMessageListQuery, UserMessage } from "sendbird";
 import { FlatList } from "react-native";
 import styles, {
   messageInputStyles,
   messageListStyles,
   sendButtonStyles,
 } from "./Channel.styles";
+import { ScrollView } from "react-native-gesture-handler";
+import { FlatListProps } from "react-native";
 
 const Channel = () => {
   const [channel, setChannel] = useState<OpenChannel>();
   const [messages, setMessages] = useState<UserMessage[]>([]);
+  const [messageListQuery, setMessageListQuery] = useState<
+    PreviousMessageListQuery
+  >();
 
   const route = useRoute<
     RouteProp<ChannelNavigatorParamList, "ChannelScreen">
@@ -24,6 +29,20 @@ const Channel = () => {
   const handleNewMessage = (message: UserMessage) => {
     setMessages([message, ...messages]);
   };
+
+  const loadPreviousMessages = () => {
+    if (messageListQuery) {
+      if (messageListQuery.hasMore) {
+        messageListQuery.load((messageList, error) => {
+          setMessages([...messages, ...(messageList as UserMessage[])]);
+        });
+      }
+    }
+  };
+
+  useEffect(() => {
+    loadPreviousMessages();
+  }, [messageListQuery]);
 
   useEffect(() => {
     sb.connect("sean", () => {
@@ -34,10 +53,8 @@ const Channel = () => {
           messageListQuery.limit = 10;
           messageListQuery.reverse = true;
 
-          messageListQuery.load((messageList, error) => {
-            setChannel(openChannel);
-            setMessages(messageList as UserMessage[]);
-          });
+          setMessageListQuery(messageListQuery);
+          setChannel(openChannel);
         });
       });
     });
@@ -63,7 +80,9 @@ const Channel = () => {
 
   return (
     <View style={styles}>
-      {messages && <MessageList messages={messages} />}
+      {messages && (
+        <MessageList messages={messages} onEndReached={loadPreviousMessages} />
+      )}
       {channel && (
         <MessageInput channel={channel} onNewMessage={handleNewMessage} />
       )}
@@ -73,19 +92,26 @@ const Channel = () => {
 
 interface MessageListProps {
   messages: UserMessage[];
+  onEndReached: FlatListProps<UserMessage>["onEndReached"];
 }
 
 const MessageList = (props: MessageListProps) => {
   return (
-    <View style={messageListStyles}>
-      <FlatList<UserMessage>
-        data={props.messages}
-        keyExtractor={(item, index) => item.messageId.toString()}
-        renderItem={({ item }) => (
-          <List.Item title={item.sender.userId} description={item.message} />
-        )}
-      />
-    </View>
+    <FlatList<UserMessage>
+      style={messageListStyles}
+      inverted
+      data={props.messages}
+      keyExtractor={(item, index) => item.messageId.toString()}
+      renderItem={({ item }) => (
+        <List.Item
+          key={item.messageId}
+          title={item.sender.userId}
+          description={item.message}
+        />
+      )}
+      onEndReachedThreshold={0.1}
+      onEndReached={props.onEndReached}
+    />
   );
 };
 
