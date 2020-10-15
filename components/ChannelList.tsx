@@ -3,7 +3,7 @@ import { FlatList } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { FAB, List } from "react-native-paper";
 import { OpenChannel } from "sendbird";
-import styles from "./ChannelList.styles";
+import styles, { addButtonStyles } from "./ChannelList.styles";
 import { sb } from "../lib/sendbird";
 import { Text, View } from "../components/Themed";
 
@@ -36,15 +36,18 @@ const ChannelList = () => {
         data={channels}
         keyExtractor={(item, index) => item.url}
         renderItem={({ item }) => (
-          <List.Item
-            title={item.name}
-            description={item.url}
-            onPress={() => handlePressChannel(item)}
-          />
+          <View>
+            <List.Item
+              title={item.name}
+              description={item.url}
+              onPress={() => handlePressChannel(item)}
+              descriptionNumberOfLines={1}
+              descriptionEllipsizeMode="tail"
+            />
+          </View>
         )}
       />
-      <Text>Add a new channel</Text>
-      <FAB icon="plus" onPress={handleAddChannel} />
+      <FAB icon="plus" onPress={handleAddChannel} style={addButtonStyles} />
     </View>
   );
 };

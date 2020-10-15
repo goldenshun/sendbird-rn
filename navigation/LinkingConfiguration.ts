@@ -18,7 +18,7 @@ export default {
           },
           Channels: {
             screens: {
-              ChannelTabScreen: "channels",
+              ChannelListScreen: "channels",
               ChannelScreen: "channel",
             },
           },

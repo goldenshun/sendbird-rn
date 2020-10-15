@@ -12,7 +12,6 @@ import styles, {
   messageListStyles,
   sendButtonStyles,
 } from "./Channel.styles";
-import { ScrollView } from "react-native-gesture-handler";
 import { FlatListProps } from "react-native";
 
 const Channel = () => {
@@ -50,7 +49,7 @@ const Channel = () => {
         openChannel.enter(() => {
           let messageListQuery = openChannel.createPreviousMessageListQuery();
           messageListQuery.messageTypeFilter = 0; // "user"?
-          messageListQuery.limit = 10;
+          messageListQuery.limit = 20;
           messageListQuery.reverse = true;
 
           setMessageListQuery(messageListQuery);
