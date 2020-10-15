@@ -1,39 +1,91 @@
 import React, { useEffect, useState } from "react";
 import { RouteProp, useRoute } from "@react-navigation/native";
-import { Button, TextInput } from "react-native-paper";
+import { Button, List, TextInput } from "react-native-paper";
 import { useForm, Controller } from "react-hook-form";
 import styles from "./ChannelList.styles";
 import { sb } from "../lib/sendbird";
 import { Text, View } from "../components/Themed";
 import { ChannelNavigatorParamList } from "../types";
-import { OpenChannel } from "sendbird";
+import { OpenChannel, UserMessage } from "sendbird";
+import { FlatList } from "react-native";
 
 const Channel = () => {
   const [channel, setChannel] = useState<OpenChannel>();
+  const [messages, setMessages] = useState<UserMessage[]>([]);
+  console.log({ messages });
+
   const route = useRoute<
     RouteProp<ChannelNavigatorParamList, "ChannelScreen">
   >();
+
+  const handleNewMessage = (message: UserMessage) => {
+    setMessages([message, ...messages]);
+  };
 
   useEffect(() => {
     sb.connect("sean", () => {
       sb.OpenChannel.getChannel(route.params.url, (openChannel) => {
         openChannel.enter(() => {
-          setChannel(openChannel);
+          let messageListQuery = openChannel.createPreviousMessageListQuery();
+          messageListQuery.messageTypeFilter = 0; // "user"?
+          messageListQuery.limit = 10;
+          messageListQuery.reverse = true;
+
+          messageListQuery.load((messageList, error) => {
+            setChannel(openChannel);
+            setMessages(messageList as UserMessage[]);
+          });
         });
       });
     });
   }, []);
 
+  useEffect(() => {
+    if (channel && messages) {
+      const channelHandler = new sb.ChannelHandler();
+      channelHandler.onMessageReceived = (channel, message) => {
+        console.log("onMessageReceived", message);
+        if (message.messageType === "user") {
+          handleNewMessage(message);
+        }
+      };
+      console.log("Adding channel handler");
+      sb.addChannelHandler(channel.url, channelHandler);
+
+      return () => {
+        console.log("Removing channel handler");
+        sb.removeChannelHandler(channel.url);
+      };
+    }
+  }, [channel, messages]);
+
   return (
     <View style={styles}>
-      <Text>Channel</Text>
-      {channel && <MessageInput channel={channel} />}
+      {messages && <MessageList messages={messages} />}
+      {channel && (
+        <MessageInput channel={channel} onNewMessage={handleNewMessage} />
+      )}
     </View>
+  );
+};
+
+interface MessageListProps {
+  messages: UserMessage[];
+}
+
+const MessageList = (props: MessageListProps) => {
+  return (
+    <FlatList<UserMessage>
+      data={props.messages}
+      keyExtractor={(item, index) => item.messageId.toString()}
+      renderItem={({ item }) => <Text>{item.message}</Text>}
+    />
   );
 };
 
 interface MessageInputProps {
   channel: OpenChannel;
+  onNewMessage: (message: UserMessage) => void;
 }
 
 const MessageInput = (props: MessageInputProps) => {
@@ -45,7 +97,7 @@ const MessageInput = (props: MessageInputProps) => {
     let params = new sb.UserMessageParams();
     params.message = data.input;
     props.channel.sendUserMessage(params, (message, error) => {
-      console.log(message);
+      props.onNewMessage(message as UserMessage);
     });
   };
 
