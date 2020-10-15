@@ -2,17 +2,20 @@ import React, { useEffect, useState } from "react";
 import { RouteProp, useRoute } from "@react-navigation/native";
 import { Button, List, TextInput } from "react-native-paper";
 import { useForm, Controller } from "react-hook-form";
-import styles from "./ChannelList.styles";
 import { sb } from "../lib/sendbird";
 import { Text, View } from "../components/Themed";
 import { ChannelNavigatorParamList } from "../types";
 import { OpenChannel, UserMessage } from "sendbird";
 import { FlatList } from "react-native";
+import styles, {
+  messageInputStyles,
+  messageListStyles,
+  sendButtonStyles,
+} from "./Channel.styles";
 
 const Channel = () => {
   const [channel, setChannel] = useState<OpenChannel>();
   const [messages, setMessages] = useState<UserMessage[]>([]);
-  console.log({ messages });
 
   const route = useRoute<
     RouteProp<ChannelNavigatorParamList, "ChannelScreen">
@@ -44,7 +47,6 @@ const Channel = () => {
     if (channel && messages) {
       const channelHandler = new sb.ChannelHandler();
       channelHandler.onMessageReceived = (channel, message) => {
-        console.log("onMessageReceived", message);
         if (message.messageType === "user") {
           handleNewMessage(message);
         }
@@ -75,11 +77,15 @@ interface MessageListProps {
 
 const MessageList = (props: MessageListProps) => {
   return (
-    <FlatList<UserMessage>
-      data={props.messages}
-      keyExtractor={(item, index) => item.messageId.toString()}
-      renderItem={({ item }) => <Text>{item.message}</Text>}
-    />
+    <View style={messageListStyles}>
+      <FlatList<UserMessage>
+        data={props.messages}
+        keyExtractor={(item, index) => item.messageId.toString()}
+        renderItem={({ item }) => (
+          <List.Item title={item.sender.userId} description={item.message} />
+        )}
+      />
+    </View>
   );
 };
 
@@ -89,24 +95,30 @@ interface MessageInputProps {
 }
 
 const MessageInput = (props: MessageInputProps) => {
-  const { control, handleSubmit, errors } = useForm({
+  const [loading, setLoading] = useState<boolean>(false);
+  const { control, handleSubmit, errors, reset } = useForm({
     defaultValues: { input: "" },
   });
 
   const onSubmit = async (data: { input: string }) => {
+    setLoading(true);
+
     let params = new sb.UserMessageParams();
     params.message = data.input;
     props.channel.sendUserMessage(params, (message, error) => {
+      reset();
       props.onNewMessage(message as UserMessage);
+      setLoading(false);
     });
   };
 
   return (
-    <View>
+    <View style={messageInputStyles}>
       <Controller
         control={control}
         render={({ onChange, onBlur, value }) => (
           <TextInput
+            dense
             mode="outlined"
             placeholder="Enter a message"
             onBlur={onBlur}
@@ -119,7 +131,12 @@ const MessageInput = (props: MessageInputProps) => {
       />
       {errors.input && <Text>This is required.</Text>}
 
-      <Button mode="contained" onPress={handleSubmit(onSubmit)}>
+      <Button
+        style={sendButtonStyles}
+        mode="contained"
+        disabled={loading}
+        onPress={handleSubmit(onSubmit)}
+      >
         Send
       </Button>
     </View>
