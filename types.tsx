@@ -4,13 +4,13 @@ export type RootStackParamList = {
 };
 
 export type BottomTabParamList = {
-  TabOne: undefined;
+  Sheets: undefined;
   TabTwo: undefined;
   Channels: undefined;
 };
 
-export type TabOneParamList = {
-  TabOneScreen: undefined;
+export type SheetsNavigatorParamList = {
+  SheetsScreen: undefined;
 };
 
 export type TabTwoParamList = {

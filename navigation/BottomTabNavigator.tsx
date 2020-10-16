@@ -5,13 +5,13 @@ import * as React from "react";
 
 import Colors from "../constants/Colors";
 import useColorScheme from "../hooks/useColorScheme";
-import TabOneScreen from "../screens/TabOneScreen";
+import SheetsScreen from "../screens/SheetsScreen";
 import TabTwoScreen from "../screens/TabTwoScreen";
 import ChannelTabScreen from "../screens/ChannelTabScreen";
 import ChannelScreen from "../screens/ChannelScreen";
 import {
   BottomTabParamList,
-  TabOneParamList,
+  SheetsNavigatorParamList,
   TabTwoParamList,
   ChannelNavigatorParamList,
 } from "../types";
@@ -23,7 +23,7 @@ export default function BottomTabNavigator() {
 
   return (
     <BottomTab.Navigator
-      initialRouteName="TabOne"
+      initialRouteName="Channels"
       tabBarOptions={{ activeTintColor: Colors[colorScheme].tint }}
     >
       <BottomTab.Screen
@@ -36,8 +36,8 @@ export default function BottomTabNavigator() {
         }}
       />
       <BottomTab.Screen
-        name="TabOne"
-        component={TabOneNavigator}
+        name="Sheets"
+        component={SheetsNavigator}
         options={{
           tabBarIcon: ({ color }) => (
             <TabBarIcon name="ios-code" color={color} />
@@ -65,17 +65,17 @@ function TabBarIcon(props: { name: string; color: string }) {
 
 // Each tab has its own navigation stack, you can read more about this pattern here:
 // https://reactnavigation.org/docs/tab-based-navigation#a-stack-navigator-for-each-tab
-const TabOneStack = createStackNavigator<TabOneParamList>();
+const SheetsStack = createStackNavigator<SheetsNavigatorParamList>();
 
-function TabOneNavigator() {
+function SheetsNavigator() {
   return (
-    <TabOneStack.Navigator>
-      <TabOneStack.Screen
-        name="TabOneScreen"
-        component={TabOneScreen}
-        options={{ headerTitle: "Tab One Title" }}
+    <SheetsStack.Navigator>
+      <SheetsStack.Screen
+        name="SheetsScreen"
+        component={SheetsScreen}
+        options={{ headerTitle: "Sheets" }}
       />
-    </TabOneStack.Navigator>
+    </SheetsStack.Navigator>
   );
 }
 
